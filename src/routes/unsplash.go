@@ -154,6 +154,7 @@ func searchPhotosPerPageUnsplash(tag string, page int) (*unsplash.PhotoSearchRes
 			"page":      fmt.Sprint(page),
 			"query":     tag,
 		},
+		Header: map[string][]string{},
 	}
 	// fmt.Println(r.URL())
 

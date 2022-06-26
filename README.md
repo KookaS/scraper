@@ -26,6 +26,9 @@ must share photos generated with https://creativecommons.org/licenses/by-sa/2.0/
     UNSPLASH_COLLECTION=unsplash
     UNSPLASH_PRIVATE_KEY=***
     UNSPLASH_PUBLIC_KEY=***
+    BURST_COLLECTION=burst
+    BURST_PRIVATE_KEY=***
+    BURST_PUBLIC_KEY=***
 
 ## installation
 

@@ -208,6 +208,7 @@ func searchPhotosPerPageFlickr(parser *pagser.Pagser, ids string, tags string, p
 			"media":   "photos",
 			"page":    page,
 		},
+		Header: map[string][]string{},
 	}
 	// fmt.Println(r.URL())
 
@@ -253,6 +254,7 @@ func downloadPhoto(parser *pagser.Pagser, id string) (*DownloadPhotoData, error)
 			"method":   "flickr.photos.getSizes",
 			"photo_id": id,
 		},
+		Header: map[string][]string{},
 	}
 	// fmt.Println(r.URL())
 
@@ -299,6 +301,7 @@ func infoPhoto(parser *pagser.Pagser, photo Photo) (*InfoPhotoData, error) {
 			"method":   "flickr.photos.getInfo",
 			"photo_id": photo.ID,
 		},
+		Header: map[string][]string{},
 	}
 	// fmt.Println(r.URL())
 
