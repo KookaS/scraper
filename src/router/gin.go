@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"scraper/src/mongodb"
 	"scraper/src/utils"
+	"scraper/src/types"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func Router(mongoClient *mongo.Client) (*gin.Engine){
+func Router[C types.ClientSchema](mongoClient C) (*gin.Engine){
 	router := gin.Default()
 	router.Use(cors.Default())
 
@@ -61,12 +61,8 @@ func Router(mongoClient *mongo.Client) (*gin.Engine){
 	return router
 }
 
-type mongoSchema interface {
-	*mongo.Client
-}
-
 // wrapper for the response with argument
-func wrapperResponseArg[M mongoSchema, A any, R any](c *gin.Context, f func(mongo M, arg A) (R, error), mongo M, arg A) {
+func wrapperResponseArg[C types.ClientSchema, A any, R any](c *gin.Context, f func(mongo C, arg A) (R, error), mongo C, arg A) {
 	res, err := f(mongo, arg)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": err.Error()})
@@ -76,7 +72,7 @@ func wrapperResponseArg[M mongoSchema, A any, R any](c *gin.Context, f func(mong
 }
 
 // wrapper for the response
-func wrapperResponse[M mongoSchema, R any](c *gin.Context, f func(mongo M) (R, error), mongo M) {
+func wrapperResponse[C types.ClientSchema, R any](c *gin.Context, f func(mongo C) (R, error), mongo C) {
 	res, err := f(mongo)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": err.Error()})
@@ -86,7 +82,7 @@ func wrapperResponse[M mongoSchema, R any](c *gin.Context, f func(mongo M) (R, e
 }
 
 // wrapper for the ginHandler with body with collectionName
-func wrapperHandlerBody[B any, R any](mongoClient *mongo.Client, f func(mongo *mongo.Client, body B) (R, error)) gin.HandlerFunc {
+func wrapperHandlerBody[C types.ClientSchema, B any, R any](mongoClient C, f func(mongo C, body B) (R, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var body B
 		if err := c.BindJSON(&body); err != nil {
@@ -98,7 +94,7 @@ func wrapperHandlerBody[B any, R any](mongoClient *mongo.Client, f func(mongo *m
 }
 
 // wrapper for the ginHandler with URI
-func wrapperHandlerURI[P any, R any](mongoClient *mongo.Client, f func(mongo *mongo.Client, params P) (R, error)) gin.HandlerFunc {
+func wrapperHandlerURI[C types.ClientSchema, P any, R any](mongoClient C, f func(mongo C, params P) (R, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var params P
 		if err := c.ShouldBindUri(&params); err != nil {
@@ -110,7 +106,7 @@ func wrapperHandlerURI[P any, R any](mongoClient *mongo.Client, f func(mongo *mo
 }
 
 // wrapper for the ginHandler
-func wrapperHandler[R any](mongoClient *mongo.Client, f func(mongo *mongo.Client) (R, error)) gin.HandlerFunc {
+func wrapperHandler[C types.ClientSchema, R any](mongoClient C, f func(mongo C) (R, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		wrapperResponse(c, f, mongoClient)
 	}

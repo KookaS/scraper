@@ -19,8 +19,8 @@ type ParamsFindImagesIDs struct {
 }
 
 // FindImagesIDs get all the IDs of an image collection
-func FindImagesIDs(mongoClient *mongo.Client, params ParamsFindImagesIDs) ([]types.Image, error) {
-	collectionImages, err := utils.ImagesCollection(mongoClient, params.Collection)
+func FindImagesIDs[C types.ClientSchema](client C, params ParamsFindImagesIDs) ([]types.Image, error) {
+	collectionImages, err := utils.ImagesCollection(client, params.Collection)
 	if err != nil {
 		return nil, err
 	}

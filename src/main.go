@@ -1,16 +1,25 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	"scraper/src/mongodb"
 
-// "scraper/src/mongodb"
-// "scraper/src/router"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	// "scraper/src/router"
+)
 
 func main() {
 
 	fmt.Print("Hello AWS")
 
-	// mongoClient := mongodb.ConnectMongoDB()
-	// _ = router.Router(mongoClient)
+	// client := mongodb.ConnectMongoDB()
+	client := mongodb.ConnectDynamoDB()
+	// _ = router.Router(client)
 
-	// _ = mongodb.ConnectDynamoDB()
+	var params *dynamodb.GetItemInput = {
+		
+	}
+	
+	client.GetItem(context.TODO())
 }
