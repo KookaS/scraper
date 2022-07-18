@@ -1,25 +1,24 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"scraper/src/mongodb"
-
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"log"
+	"scraper/src/dynamodb"
+	"scraper/src/utils"
 	// "scraper/src/router"
 )
 
 func main() {
 
-	fmt.Print("Hello AWS")
-
 	// client := mongodb.ConnectMongoDB()
-	client := mongodb.ConnectDynamoDB()
-	// _ = router.Router(client)
+	client := dynamodb.ConnectDynamoDB()
+	_ = dynamodb.TableCreateImage(client, utils.DotEnvVariable("IMAGES_WANTED_COLLECTION"))
+	_ = dynamodb.TableCreateImage(client, utils.DotEnvVariable("IMAGES_PENDING_COLLECTION"))
+	_ = dynamodb.TableCreateImage(client, utils.DotEnvVariable("IMAGES_UNWANTED_COLLECTION"))
+	_ = dynamodb.TableCreateImage(client, utils.DotEnvVariable("USERS_UNWANTED_COLLECTION"))
+	_ = dynamodb.TableCreateImage(client, utils.DotEnvVariable("TAGS_UNWANTED_COLLECTION"))
+	_ = dynamodb.TableCreateImage(client, utils.DotEnvVariable("TAGS_WANTED_COLLECTION"))
+	err := dynamodb.TablesList(client)
+	log.Fatal(err)
 
-	var params *dynamodb.GetItemInput = {
-		
-	}
-	
-	client.GetItem(context.TODO())
+	// _ = router.Router(client)
 }
