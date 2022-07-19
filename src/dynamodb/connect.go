@@ -8,12 +8,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-func ConnectDynamoDB() *dynamodb.Client {
+func ConnectDynamoDB(region string) *dynamodb.Client {
 	// Using the SDK's default configuration, loading additional config
 	// and credentials values from the environment variables, shared
 	// credentials, and shared configuration files
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion("us-east-1"),
+		config.WithRegion(region),
 	)
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)

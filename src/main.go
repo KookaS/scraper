@@ -10,7 +10,7 @@ import (
 func main() {
 
 	// client := mongodb.ConnectMongoDB()
-	client := dynamodb.ConnectDynamoDB()
+	client := dynamodb.ConnectDynamoDB("us-east-1")
 	_ = dynamodb.TableCreateImage(client, utils.DotEnvVariable("IMAGES_WANTED_COLLECTION"))
 	_ = dynamodb.TableCreateImage(client, utils.DotEnvVariable("IMAGES_PENDING_COLLECTION"))
 	_ = dynamodb.TableCreateImage(client, utils.DotEnvVariable("IMAGES_UNWANTED_COLLECTION"))

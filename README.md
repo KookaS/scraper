@@ -29,14 +29,12 @@ must share photos generated with https://creativecommons.org/licenses/by-sa/2.0/
 
 ## .env
 
-    MONGODB_URI=mongodb://localhost:27017
-    SCRAPER_DB=scraper
-    TAGS_UNWANTED_COLLECTION=tagsUnwanted
-    TAGS_WANTED_COLLECTION=tagsWanted
-    IMAGES_WANTED_COLLECTION=imagesWanted
-    IMAGES_PENDING_COLLECTION=imagesPending
-    IMAGES_UNWANTED_COLLECTION=imagesUnwanted
-    USERS_UNWANTED_COLLECTION=usersUnwanted
+    TAGS_UNWANTED=tagsUnwanted
+    TAGS_WANTED=tagsWanted
+    IMAGES_WANTED=imagesWanted
+    IMAGES_PENDING=imagesPending
+    IMAGES_UNWANTED=imagesUnwanted
+    USERS_UNWANTED=usersUnwanted
     IMAGE_PATH=<absolutePath>
     FLICKR_PRIVATE_KEY=***
     FLICKR_PUBLIC_KEY=***
