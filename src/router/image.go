@@ -39,19 +39,7 @@ func FindImagesUnwanted(mongoClient *mongo.Client) ([]types.Image, error) {
 }
 
 // Body for the RemoveImage request
-type ParamsRemoveImage struct {
-	ID string `uri:"id" binding:"required"`
-}
 
-// RemoveImageAndFile removes in db and file of a pending image
-func RemoveImageAndFile(mongoClient *mongo.Client, params ParamsRemoveImage) (*int64, error) {
-	collectionImagesPending := mongoClient.Database(utils.DotEnvVariable("SCRAPER_DB")).Collection(utils.DotEnvVariable("IMAGES_PENDING_COLLECTION"))
-	imageID, err := primitive.ObjectIDFromHex(params.ID)
-	if err != nil {
-		return nil, err
-	}
-	return mongodb.RemoveImageAndFile(collectionImagesPending, imageID)
-}
 
 // RemoveImage removes in db an unwanted image
 func RemoveImage(mongoClient *mongo.Client, params ParamsRemoveImage) (*int64, error) {
@@ -162,40 +150,6 @@ func CreateImageCrop(client *awsDynamoDB.Client, body BodyImageCrop) (interface{
 	}
 	return putItemOutput.ResultMetadata, nil
 }
-
-type BodyTransferImage struct {
-	Origin    string           `json:"origin,omitempty"`
-	OriginID  string           `json:"originID,omitempty"`
-	From     string `json:"from,omitempty"`
-	To       string `json:"to,omitempty"`
-}
-func TransferImage(client *awsDynamoDB.Client, body types.BodyTransferImage) (interface{}, error) {
-	collectionImagesFrom, err := utils.ImagesCollection(mongoClient, body.From)
-	if err != nil {
-		return nil, err
-	}
-	collectionImagesTo, err := utils.ImagesCollection(mongoClient, body.To)
-	if err != nil {
-		return nil, err
-	}
-	query := bson.M{"originID": body.OriginID}
-	image, err := FindOne[types.Image](collectionImagesFrom, query)
-	if err != nil {
-		return nil, fmt.Errorf("FindOne[Image] has failed: %v", err)
-	}
-	image.ID = primitive.NilObjectID
-	res, err := collectionImagesTo.InsertOne(context.TODO(), *image)
-	if err != nil {
-		return nil, fmt.Errorf("InsertOne has failed: %v", err)
-	}
-	_, err = collectionImagesFrom.DeleteOne(context.TODO(), query)
-	if err != nil {
-		return nil, fmt.Errorf("DeleteOne has failed: %v", err)
-	}
-	return res.InsertedID, nil
-}
-
-
 
 func replaceImageFile(client *awsDynamoDB.Client, imageReplace *scraperTypes.Image, imageFile []byte) error {
 	// replace or create the file
@@ -315,4 +269,41 @@ func getNewBoxes(client *awsDynamoDB.Client, tableName string, origin string, or
 		i++
 	}
 	return imageFound, nil
+}
+
+type BodyTransferImage struct {
+	Origin    string           `json:"origin,omitempty"`
+	OriginID  string           `json:"originID,omitempty"`
+	From     string `json:"from,omitempty"`
+	To       string `json:"to,omitempty"`
+}
+func TransferImage(client *awsDynamoDB.Client, body BodyTransferImage) (interface{}, error) {
+	image, err := scraperDynamoDB.GetImage(client, body.From, body.Origin, body.OriginID)
+	if err != nil {
+		return nil, errors.Wrap(err, "Got error calling GetImage")
+	}
+
+	_, err = scraperDynamoDB.InsertItem(client, body.To, image)
+	if err != nil {
+		return nil, errors.Wrap(err, "Got error calling InsertItem")
+	}
+
+	deleteItemOutput, err := scraperDynamoDB.DeleteImage(client, body.From, body.Origin, body.ObjectID)
+	if err != nil {
+		return nil, errors.Wrap(err, "Got error calling InsertItem")
+	}
+	return deleteItemOutput.ResultMetadata, nil
+}
+
+type BodyRemoveImage struct {
+	ID string `uri:"id" binding:"required"`
+}
+// RemoveImageAndFile removes in db and file of a pending image
+func RemoveImageAndFile(mongoClient *mongo.Client, body BodyRemoveImage) (*int64, error) {
+	collectionImagesPending := mongoClient.Database(utils.DotEnvVariable("SCRAPER_DB")).Collection(utils.DotEnvVariable("IMAGES_PENDING_COLLECTION"))
+	imageID, err := primitive.ObjectIDFromHex(params.ID)
+	if err != nil {
+		return nil, err
+	}
+	return mongodb.RemoveImageAndFile(collectionImagesPending, imageID)
 }

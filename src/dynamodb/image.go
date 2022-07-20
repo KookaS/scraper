@@ -2,7 +2,10 @@ package dynamodb
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	scraperTypes "scraper/src/types"
+	"scraper/src/utils"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -63,24 +66,6 @@ func UpdateImageTagsPull(client *dynamodb.Client, tableName string, origin strin
 }
 
 func updateExpression(client *dynamodb.Client, tableName string, origin string, originID string, expr expression.Expression) (*dynamodb.UpdateItemOutput, error){
-	// tags, err := attributevalue.MarshalWithOptions(image.Tags)
-	// sizes , err := attributevalue.MarshalWithOptions(image.Sizes)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "failed to MarshalWithOptions")
-	// }
-	// input := &dynamodb.UpdateItemInput{
-	// 	ExpressionAttributeValues: map[string]awsTypes.AttributeValue{
-	// 		":tags": tags,
-	// 		":sizes": sizes,
-	// 	},
-	// 	TableName: aws.String(tableName),
-	// 	Key: map[string]awsTypes.AttributeValue{
-	// 		"origin":   awsTypes.AttributeValueMemberS{Value: image.Origin},   // Partition Key
-	// 		"originID": awsTypes.AttributeValueMemberS{Value: image.OriginID}, // Sort Key
-	// 	},
-	// 	ReturnValues:     "UPDATED_NEW",
-	// 	UpdateExpression: aws.String("set Tags = :tags, Sizes = :sizes"),
-	// }
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]awsTypes.AttributeValue{
 			"origin":   awsTypes.AttributeValueMemberS{Value: origin},   // Partition Key
@@ -98,4 +83,48 @@ func updateExpression(client *dynamodb.Client, tableName string, origin string, 
 		return nil, errors.Wrap(err, "Got error calling UpdateItem")
 	}
 	return updateItemOutput, nil
+}
+
+func RemoveImagesAndFiles(client *dynamodb.Client, tableName string, origin string, originID string) (interface{}, error) {
+	var deletedCount int64
+	images, err := ScanItems[scraperTypes.Image](client, tableName)
+	if err != nil {
+		return nil, errors.Wrap(err, "Got error calling ScanItems")
+	}
+
+	for _, image := range images {
+		deletedOne, err := RemoveImageAndFile(client, tableName, origin, originID)
+		if err != nil {
+			return nil, errors.Wrap(err, "Got error calling RemoveImageAndFile")
+		}
+		deletedCount += *deletedOne
+	}
+	return &deletedCount, nil
+}
+
+// RemoveImageAndFile remove an image based on its mongodb id and remove its file
+func RemoveImageAndFile(client *dynamodb.Client, tableName string, origin string, originID string) (*int, error) {
+	// get image for removing the file
+	image, err := GetImage(client, tableName, origin, originID)
+	if err != nil {
+		return nil, errors.Wrap(err, "Got error calling GetImage")
+	}
+
+	// remove image in DB
+	_, err = DeleteImage(client, tableName, origin, originID)
+	if err != nil {
+		return nil, errors.Wrap(err, "Got error calling DeleteImage")
+	}
+
+	// TODO: S3
+	folderDir := utils.DotEnvVariable("IMAGE_PATH")
+	path := filepath.Join(folderDir, image.Origin, image.Name)
+	err = os.Remove(path)
+	// sometimes images can have the same file stored but are present multiple in the search request
+	// TODO: if err != nil && deleteCount == 0 
+	if err != nil {
+		return nil, errors.Wrap(err, "Got error calling os.Remove")
+	}
+	deleteCount := 1
+	return &deleteCount, nil
 }

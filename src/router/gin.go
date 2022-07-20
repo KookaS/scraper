@@ -23,7 +23,7 @@ func Router[C *dynamodb.Client](client C) (*gin.Engine){
 	router.PUT("/image/crop", wrapperHandlerBody(client, UpdateImageCrop))
 	router.POST("/image/crop", wrapperHandlerBody(client, CreateImageCrop))
 	router.POST("/image/transfer", wrapperHandlerBody(client, TransferImage))
-	router.DELETE("/image/:id", wrapperHandlerURI(client, RemoveImageAndFile))
+	router.DELETE("/image", wrapperHandlerBody(client, RemoveImageAndFile))
 
 	// routes for multiple images pending or wanted
 	router.GET("/images/id/:origin/:collection", wrapperHandlerURI(client, FindImagesIDs))

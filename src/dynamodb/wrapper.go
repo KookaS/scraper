@@ -59,8 +59,8 @@ func GetInput[I wrapperSchema](client *dynamodb.Client, input *dynamodb.GetItemI
 	return &item, nil
 }
 
-// GetItems retrieve all the items from a table
-func ScanItems[I wrapperSchema](client *dynamodb.Client, tableName string) (*[]I, error) {
+// ScanItems retrieve all the items from a table
+func ScanItems[I wrapperSchema](client *dynamodb.Client, tableName string) ([]I, error) {
 	data, err := client.Scan(context.TODO(), &dynamodb.ScanInput{
 		TableName: aws.String(tableName),
 	})
@@ -73,11 +73,12 @@ func ScanItems[I wrapperSchema](client *dynamodb.Client, tableName string) (*[]I
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to UnmarshalListOfMaps")
 	}
-	return &items, nil
+	return items, nil
 }
 
-func QueryItems[I wrapperSchema](client *dynamodb.Client, tableName string) (*[]I, error) {
-	data, err := client.Scan(context.TODO(), &dynamodb.QueryInput{
+func QueryItems[I wrapperSchema](client *dynamodb.Client, tableName string) ([]I, error) {
+	// TODO: add 
+	data, err := client.Query(context.TODO(), &dynamodb.QueryInput{
 		TableName: aws.String(tableName),
 	})
 	if err != nil {
@@ -89,5 +90,5 @@ func QueryItems[I wrapperSchema](client *dynamodb.Client, tableName string) (*[]
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to UnmarshalListOfMaps")
 	}
-	return &items, nil
+	return items, nil
 }
